@@ -94,7 +94,7 @@ IMPLS = ada ada.2 awk bash basic bbc-basic c chuck clojure coffee common-lisp cp
 	guile haskell haxe hy io java js jq julia kotlin livescript logo lua make mal \
 	matlab miniMAL nasm nim objc objpascal ocaml perl perl6 php picolisp pike plpgsql \
 	plsql powershell ps python python.2 r racket rexx rpython ruby rust scala scheme skew \
-	swift swift3 swift4 swift5 tcl ts vala vb vhdl vimscript wasm wren yorick zig
+	swift swift3 swift4 swift5 tcl ts vala vb vhdl vimscript wasm wren yorick xpl0 zig
 
 EXTENSION = .mal
 
@@ -157,6 +157,7 @@ mal_TEST_OPTS = --start-timeout 60 --test-timeout 180
 else ifeq ($(MAL_IMPL),powershell)
 mal_TEST_OPTS = --start-timeout 60 --test-timeout 180
 endif
+xpl0_TEST_OPTS = --crlf
 
 
 #
@@ -266,6 +267,7 @@ vimscript_STEP_TO_PROG = vimscript/$($(1)).vim
 wasm_STEP_TO_PROG =    wasm/$($(1)).$(if $(filter lucet,$(wasm_MODE)),so,wasm)
 wren_STEP_TO_PROG =    wren/$($(1)).wren
 yorick_STEP_TO_PROG =  yorick/$($(1)).i
+xpl0_STEP_TO_PROG = xpl0/$($(1))
 zig_STEP_TO_PROG =     zig/$($(1))
 
 #
