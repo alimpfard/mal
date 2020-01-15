@@ -5,7 +5,8 @@ include "utils";
 def read_line:
     . as $in
     | label $top
-    | _readline;
+    | $in
+    | __readline;
 
 def READ:
     read_str | read_form | .value;

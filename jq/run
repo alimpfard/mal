@@ -1,3 +1,7 @@
 #!/bin/sh
 
-exec python rts.py "${@}"
+if [[ "${jq_MODE:-IO}" = "1.6" ]]; then
+    exec python rts.py "${@}"
+else
+    exec jq -I --argjson DEBUG ${DEBUG:-false} -nrRM -f ${STEP:-stepA_mal}.jq --args "${@}"
+fi

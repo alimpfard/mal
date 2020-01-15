@@ -1,3 +1,5 @@
+import "io" as io;
+
 def _debug(ex):
     . as $top
     | ex
@@ -107,57 +109,14 @@ def tomal:
         )
     );
 
-def _extern(options):
-    {command: .} 
-    | debug
-    | if (options.nowait | not) then
-        input | fromjson
-      else
-        null
-      end;
-
-def issue_extern(cmd; options):
-    {cmd: cmd, args: .}
-    | _extern(options);
-
-def issue_extern(cmd):
-    issue_extern(cmd; {});
-
-def _readline:
-      [.]
-    | issue_extern("readline"; {nowait: false})
-    ;
-
-def __readline(prompt):
-    . as $top 
-    | prompt
-    | _readline;
+def _display:
+    io::_display;
 
 def __readline:
-    __readline(.);
-
-def _display:
-    tostring | .+"\n" | debug;
+    io::__readline;
 
 def read_file:
-    issue_extern("read");
-
-def _write_to_file(name):
-    . as $value
-    | [(name|tojson), (.|tojson), (false|tojson)]
-    | issue_extern("fwrite"; {nowait: true})
-    | $value;
-
-def _append_to_file(name):
-    . as $value
-    | [(name|tojson), (.|tojson), (true|tojson)]
-    | issue_extern("fwrite"; {nowait: true})
-    | $value;
+    io::read_file;
 
 def _halt:
-    []
-    | issue_extern("halt"; {nowait: true})
-    | halt;
-    
-def trap:
-    _write_to_file("trap_reason.json") | jqmal_error("trap");
+    halt;

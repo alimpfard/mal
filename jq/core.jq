@@ -364,7 +364,7 @@ def core_interp(arguments; env):
     ) // (
         select(.function == ">=") | null | wrap(arguments[0].value >= arguments[1].value | tostring)
     ) // (
-        select(.function == "slurp") | arguments | map(.value) | issue_extern("read") | wrap("string")
+        select(.function == "slurp") | arguments | map(.value) | read_file | wrap("string")
     ) // (
         select(.function == "read-string") | arguments | first.value | read_str | read_form.value
     ) // (
