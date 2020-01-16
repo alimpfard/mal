@@ -1,7 +1,11 @@
 #!/bin/sh
 
 name_to_step() {
-    echo "${1%_*}"
+    local name="$1"
+    while [[ "$name" != "${name%_*}" ]]; do
+        name="${name%_*}"
+    done
+    echo "$name"
 }
 
 step=$(name_to_step ${STEP:-stepA_mal})

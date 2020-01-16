@@ -1,10 +1,14 @@
 include intr.xpl;
+include lib.xpl;
+include types.xpl;
+include reader.xpl;
+include printer.xpl;
 
 string 0;
 int I;
-char Buffer(512);
+char Buffer(1024); \// 1K buffer for input
 
-\ read string from stdin
+\// read string from stdin
 procedure XPLInput;
 begin
     I := 0;
@@ -16,21 +20,23 @@ begin
     Buffer(I) := 0;
 end;
 
-\ array of char -> char ??
+\// array of char -> char ??
 function XPLRead(Inp);
-char Inp;
+int Inp;
+int Forms;
 begin
-    return Inp;
+    Forms := XPLReaderReadStr(Inp);
+    return Forms;
 end;
 
 function XPLPrint(Inp);
-char Inp;
+int Inp;
 begin
-    return Inp;
+    return XPLPrinterPrStr(Inp);
 end;
 
 function XPLEval(Inp);
-char Inp;
+int Inp;
 begin
     return Inp;
 end;
@@ -46,4 +52,9 @@ begin
     end;
 end;
 
-XPLRep;
+begin
+    Text(0, "123 = ");
+    Text(0, IToA(123));
+    CrLf(0);
+    XPLRep;
+end;

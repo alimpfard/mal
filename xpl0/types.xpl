@@ -1,0 +1,12 @@
+define 
+    NumberKind,
+    StringKind,
+    SymbolKind,
+    KeywordKind,
+    TrueKind,
+    FalseKind,
+    NilKind,
+    HashKind,
+    HashElementKind,
+    ListKind,
+    InvalidKind;
