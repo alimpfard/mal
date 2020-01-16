@@ -46,7 +46,7 @@ begin
     \// Read token
     StringEscaped := 0;
     IPos := Pos(0);
-    TellPos(Pos(0), StrLen(Str));
+    \// TellPos(Pos(0), StrLen(Str));
 
     if Str(IPos) = 0 then
         return IPos;
@@ -99,8 +99,10 @@ begin
                 ^": 
                     if StringEscaped then
                         StringEscaped := 0
-                    else
+                    else begin
+                        IPos := IPos + 1;
                         quit;
+                    end;
                 ^\:
                     if StringEscaped then
                         StringEscaped := 0
@@ -162,7 +164,17 @@ begin
     List(1) := ListLast;
     loop begin 
         XPLReaderPeek;
-        if Token(0) = Ender then quit;
+
+        if Token(0) = Ender then begin 
+            XPLReaderNext;
+            quit;
+        end;
+
+        if Token(0) = $00 then begin
+            XPLMALError := "EOF while reading list";
+            quit;
+        end;
+
         XPLReaderReadInto := ListLast;
         XPLReaderReadForm;
         
@@ -243,6 +255,9 @@ end;
 function XPLReaderReadForm;
 int Encoded;
 begin
+    if XPLMALError # $00 then
+        return 0; \// bubble the error up
+
     Encoded := XPLReaderReadInto;
     XPLReaderPeek;
     \// Text(0, "Peeked and saw ''");
@@ -254,6 +269,11 @@ begin
             begin
                 XPLReaderReadInto(0) := ListKind;
                 XPLReaderReadList(^));
+            end;
+        ^[:
+            begin
+                XPLReaderReadInto(0) := VectorKind;
+                XPLReaderReadList(^]);
             end
     other
         begin
@@ -277,9 +297,10 @@ int Position;
 int NextPosition;
 int I;
 begin
+    XPLMALError := 0; \// Clear exception
     Position := 0; \// start at the beginning of string
     NextPosition := XPLReaderTokenize(Str, addr Position);
-    TellPos(Position, NextPosition);
+    \// TellPos(Position, NextPosition);
     TokenPosition := 0; \// Should we do something about this? 
                         \// is this called recursively at all?
     if Position = NextPosition then
@@ -298,6 +319,8 @@ begin
         NextPosition := XPLReaderTokenize(Str, addr Position);
         TokenPosition := TokenPosition + 1;
     end;
+    Tokens(TokenPosition, 0) := 0; \// Reset the next token to be empty
+
     TokenPosition := 0;
     XPLReaderReadInto := MAlloc(6);
     return XPLReaderReadForm;

@@ -26,6 +26,13 @@ int Inp;
 int Forms;
 begin
     Forms := XPLReaderReadStr(Inp);
+    if Forms = $00 or XPLMALError # 0 then begin
+        Text(0, "Error: ");
+        Text(0, XPLMALError);
+        CrLf(0);
+        XPLMALError := 0; \// Clear exception
+        return XPLCreateNil;
+    end;
     return Forms;
 end;
 

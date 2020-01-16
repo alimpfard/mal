@@ -2,6 +2,7 @@ function XPLPrinterSPrStr(Value, Form);
 char Value;
 int Form;
 int Val;
+int ListPrinted;
 begin
     \// Text(0, "SPrStr Form of kind ");
     \// IntOut(0, Form(0));
@@ -27,14 +28,36 @@ begin
             Form := Form(1); \// Children
             Value(0) := ^(;
             Value := Value + 1;
+            ListPrinted := 0;
             loop begin
                 if Form = 0 then quit;
                 if Form(0) < 0 or Form(0) > InvalidKind then quit;
+                ListPrinted := 1;
                 Value := XPLPrinterSPrStr(Value, Form);
                 Value := Value + SPrintF0(Value, " ");
                 Form := Form(2);
             end;
-            Value(-1) := ^);
+            Value(0 - ListPrinted) := ^);
+            if ListPrinted = 0 then
+                Value := Value + 1;
+            Value(0) := 0;
+        end;
+        VectorKind: begin
+            Form := Form(1); \// Children
+            Value(0) := ^[;
+            Value := Value + 1;
+            ListPrinted := 0;
+            loop begin
+                if Form = 0 then quit;
+                if Form(0) < 0 or Form(0) > InvalidKind then quit;
+                ListPrinted := 1;
+                Value := XPLPrinterSPrStr(Value, Form);
+                Value := Value + SPrintF0(Value, " ");
+                Form := Form(2);
+            end;
+            Value(0 - ListPrinted) := ^];
+            if ListPrinted = 0 then
+                Value := Value + 1;
             Value(0) := 0;
         end
     other begin

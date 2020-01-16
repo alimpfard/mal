@@ -9,4 +9,5 @@ define
     HashKind,
     HashElementKind,
     ListKind,
+    VectorKind,
     InvalidKind;
