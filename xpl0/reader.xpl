@@ -1,13 +1,13 @@
 int TokenPosition;
 
-\// We limit each token to be 512 characters long max
-\// We limit the entire token sequence to be at most 1024 tokens long
+\ We limit each token to be 512 characters long max
+\ We limit the entire token sequence to be at most 1024 tokens long
 char Tokens(64, 64);
 char Token(64);
 int XPLMALError;
 int L;
 
-\// We leak __ALL__ the memory
+\ We leak __ALL__ the memory
 
 procedure TellPos(From, Too);
 int From, Too;
@@ -28,7 +28,6 @@ begin
         L := L + 1;
     end;
     Token(L) := 0;
-    Token(L + 1) := 0;
 end;
 
 procedure XPLReaderNext;
@@ -38,20 +37,20 @@ begin
 end;
 
 function XPLReaderTokenize(Str, Pos);
-char Str; \// input string
-int Pos;  \// position in input string
-int IPos;
-int StringEscaped;
+char Str; \ input string
+int Pos;  \ position in input string
+int IPos; \ End position
+int StringEscaped; \ Have we seen a backslash recently?
 begin
-    \// Read token
+    \ Read token
     StringEscaped := 0;
     IPos := Pos(0);
-    \// TellPos(Pos(0), StrLen(Str));
+    \ TellPos(Pos(0), StrLen(Str));
 
     if Str(IPos) = 0 then
         return IPos;
 
-    loop begin \// Remove leading spaces...or commas
+    loop begin \ Remove leading spaces...or commas
         case Str(IPos) of
             ^ : Pos(0) := IPos + 1;
             ^,: Pos(0) := IPos + 1
@@ -59,39 +58,38 @@ begin
         IPos := Pos(0);
     end;
 
-    \// skip comments
+    \ skip comments
     if Str(IPos) = ^; then
         loop begin
-            Pos(0) := IPos; \// update beginning of token
+            Pos(0) := IPos; \ update beginning of token
             if Str(IPos) = $0A then quit;
             if Str(IPos) = $00 then quit;
             IPos := IPos + 1;
         end;
 
-    \// ~@
+    \ ~@
     if Str(IPos) = ^~ and Str(IPos + 1) = ^@ then
-        return IPos + 3;
+        return IPos + 2;
 
-    \// Special chars
+    \ Special chars
     case Str(IPos) of
-        ^[:     IPos := IPos + 1;
-        ^]:     IPos := IPos + 1;
-        ^{:     IPos := IPos + 1;
-        ^}:     IPos := IPos + 1;
-        ^(:     IPos := IPos + 1;
-        ^):     IPos := IPos + 1;
-        ^': \' 
-                IPos := IPos + 1;    
-        ^`:     IPos := IPos + 1;
-        ^~:     IPos := IPos + 1;
-        ^^:     IPos := IPos + 1;
-        ^@:     IPos := IPos + 1
+        ^[:    IPos := IPos + 1;
+        ^]:    IPos := IPos + 1;
+        ^{:    IPos := IPos + 1;
+        ^}:    IPos := IPos + 1;
+        ^(:    IPos := IPos + 1;
+        ^):    IPos := IPos + 1;
+        ^':    IPos := IPos + 1;    
+        ^`:    IPos := IPos + 1;
+        ^~:    IPos := IPos + 1;
+        ^^:    IPos := IPos + 1;
+        ^@:    IPos := IPos + 1
     other begin end;
     
     if IPos # Pos(0) then
         return IPos; \ We have a complete token already
     
-    \// Match strings
+    \ Match strings
     if Str(IPos) = ^" then
         loop begin
             IPos := IPos + 1;
@@ -111,15 +109,18 @@ begin
                 $00:
                     begin
                         XPLMALError := "EOF while reading string";
-                        quit; \// EOF while reading string
+                        quit; \ EOF while reading string
                     end
-            other begin end;
+            other begin
+                if StringEscaped then
+                    StringEscaped := 0;
+            end;
         end;
     
     if IPos # Pos(0) then
         return IPos;
 
-    \// Read other random crap
+    \ Read other random crap
     loop begin
         case Str(IPos) of
             ^[:     quit;
@@ -128,8 +129,7 @@ begin
             ^}:     quit;
             ^(:     quit;
             ^):     quit;
-            ^': \' 
-                    quit;
+            ^':     quit;
             ^":     quit;
             ^`:     quit;
             ^~:     quit;
@@ -148,15 +148,33 @@ int XPLReaderReadInto;
 
 ffunction XPLReaderReadForm;
 
+procedure ListAllTokens;
+int TP;
+int I;
+begin
+    TP := TokenPosition;
+    loop begin
+        I := 0;
+        if Tokens(TP, 0) = 0 then quit;
+        loop begin
+            if Tokens(TP, I) = 0 then quit;
+            ChOut(0, Tokens(TP, I));
+            I := I + 1;
+        end;
+        CrLf(0);
+        TP := TP + 1;
+    end;
+end;
+
 procedure XPLReaderReadList(Ender);
 char Ender;
 int List;
 int ListLast;
 int ListLastP;
 begin
-    \// Eat the opening thingy
+    \ Eat the opening thingy
     XPLReaderNext;
-    \// Prepare a list-y structure
+    \ Prepare a list-y structure
     ListLast := MAlloc(6);
     ListLast(2) := 0;
     ListLast(1) := 0;
@@ -164,12 +182,11 @@ begin
     List(1) := ListLast;
     loop begin 
         XPLReaderPeek;
-
         if Token(0) = Ender then begin 
             XPLReaderNext;
             quit;
         end;
-
+        
         if Token(0) = $00 then begin
             XPLMALError := "EOF while reading list";
             quit;
@@ -190,7 +207,7 @@ end;
 procedure XPLReaderReadAtom;
 begin
     XPLReaderNext;
-    \// Text(0, Token);
+    \ Text(0, Token);
     if
         Token(0) = ^t and
         Token(1) = ^r and
@@ -220,10 +237,10 @@ begin
     else if 
         Token(0) = ^" then begin
             XPLReaderReadInto(0) := StringKind;
-            XPLReaderReadInto(1) := StrCpy(Token);
+            XPLReaderReadInto(1) := ProcessEscapes(Token);
         end
     else if
-        IsDigit(Token(0)) then begin
+        IsDigit(Token(0)) or (Token(0) = ^- and IsDigit(Token(1))) then begin
             XPLReaderReadInto(0) := NumberKind;
             XPLReaderReadInto(1) := AToI(Token);
         end
@@ -233,37 +250,48 @@ begin
     end;
 end;
 
-\// Return a tagged linked list in the form
-\// [Next, Data, Kind] -> [...]
-\//
-\// Numbers,Strings,Symnols,KWs,
-\//     True,False and Nil are to be encoded as
-\// [Kind, Value, (next)]
-\//
-\// A list is to be encoded as
-\// [ListKind, @Children, (next)]
-\//            |
-\//            +-> Node -> Node -> ... -> 0
-\//
-\// Similarly, Hashes are to be encoded as
-\// [HashKind, @Children, (next)]
-\//            |   +-------------------------------------+
-\//            |   v                                     |
-\//            +-> [HashElementKind, @Children, (next)  -+]
-\//                                  |
-\//                                  +-> Node -> Node -> 0
+procedure AssertConformingToHash(Node);
+int Node;
+int Count;
+begin
+    Count := 0;
+    loop begin
+        if Node = 0 or Node(0) >= InvalidKind or Node(0) < 0 then quit;
+        Count := Count + 1;
+        Node := Node(2); \ next
+    end;
+    if Rem(Count / 2) # 0 then
+        XPLMALError := "Expected an even number of items in a hash";
+end;
+
+\ Return a tagged linked list in the form
+\ [Next, Data, Kind] -> [...]
+\
+\ Numbers,Strings,Symnols,KWs,
+\     True,False and Nil are to be encoded as
+\ [Kind, Value, (next)]
+\
+\ A list is to be encoded as
+\ [ListKind, @Children, (next)]
+\            |
+\            +-> Node -> Node -> ... -> 0
+\
+\ Similarly, Hashes are to be encoded as lists of alternating keys and values
+\ This does have the downside of slowing the hash lookup to O(n), but anything 
+\ more sophisticated adds a lot of complexity
 function XPLReaderReadForm;
 int Encoded;
+int NValue, MValue;
 begin
     if XPLMALError # $00 then
-        return 0; \// bubble the error up
+        return 0; \ bubble the error up
 
     Encoded := XPLReaderReadInto;
     XPLReaderPeek;
-    \// Text(0, "Peeked and saw ''");
-    \// ChOut(0, Token(0));
-    \// Text(0, "''");
-    \// CrLf(0);
+    \ Text(0, "Peeked and saw ''");
+    \ ChOut(0, Token(0));
+    \ Text(0, "''");
+    \ CrLf(0);
     case Token(0) of
         ^(:
             begin
@@ -274,6 +302,88 @@ begin
             begin
                 XPLReaderReadInto(0) := VectorKind;
                 XPLReaderReadList(^]);
+            end;
+        ^{:
+            begin
+                XPLReaderReadInto(0) := HashKind;
+                XPLReaderReadList(^});
+                AssertConformingToHash(Encoded(1)); \ Assert that the number of elements in the hash is even
+            end;
+        \ Special Reader Macros
+        ^@:
+            begin
+                XPLReaderReadInto(0) := ListKind;
+                NValue := MAlloc(6);
+                XPLReaderReadInto(1) := NValue;
+                NValue(0) := SymbolKind;
+                NValue(1) := StrCpy("deref");
+                NValue(2) := MAlloc(6);
+                XPLReaderReadInto := NValue(2);
+                XPLReaderReadInto(2) := 0;
+                XPLReaderNext;
+                XPLReaderReadForm;
+            end;
+        ^':
+            begin
+                XPLReaderReadInto(0) := ListKind;
+                NValue := MAlloc(6);
+                XPLReaderReadInto(1) := NValue;
+                NValue(0) := SymbolKind;
+                NValue(1) := StrCpy("quote");
+                NValue(2) := MAlloc(6);
+                XPLReaderReadInto := NValue(2);
+                XPLReaderReadInto(2) := 0;
+                XPLReaderNext;
+                XPLReaderReadForm;
+            end;
+        ^`:
+            begin
+                XPLReaderReadInto(0) := ListKind;
+                NValue := MAlloc(6);
+                XPLReaderReadInto(1) := NValue;
+                NValue(0) := SymbolKind;
+                NValue(1) := StrCpy("quasiquote");
+                NValue(2) := MAlloc(6);
+                XPLReaderReadInto := NValue(2);
+                XPLReaderReadInto(2) := 0;
+                XPLReaderNext;
+                XPLReaderReadForm;
+            end;
+        ^~:
+            begin
+                XPLReaderReadInto(0) := ListKind;
+                NValue := MAlloc(6);
+                XPLReaderReadInto(1) := NValue;
+                NValue(0) := SymbolKind;
+                NValue(1) := StrCpy(if Token(1) = ^@ then "splice-unquote" else "unquote");
+                NValue(2) := MAlloc(6);
+                XPLReaderReadInto := NValue(2);
+                XPLReaderReadInto(2) := 0;
+                XPLReaderNext;
+                XPLReaderReadForm;
+            end;
+        ^^:
+            begin
+                XPLReaderReadInto(0) := ListKind;
+                NValue := MAlloc(6);
+                XPLReaderReadInto(1) := NValue;
+                NValue(0) := SymbolKind;
+                NValue(1) := StrCpy("with-meta"); \ (with-meta .. ..)
+                NValue(2) := MAlloc(6);
+
+                XPLReaderReadInto := NValue(2);
+                XPLReaderNext;
+                XPLReaderReadForm;
+                
+                MValue := NValue(2); \ (with-meta X ..)
+
+                NValue(2) := MAlloc(6); \ (with-meta .. ..)
+                XPLReaderReadInto := NValue(2);
+                NValue := NValue(2);
+                XPLReaderReadForm; \ (with-meta Y ..)
+
+                NValue(2) := MValue; \ (with-meta Y X)
+                MValue(2) := 0;
             end
     other
         begin
@@ -291,24 +401,31 @@ begin
     return Val;
 end;
 
+int Initialized;
+
 function XPLReaderReadStr(Str);
 char Str;
 int Position;
 int NextPosition;
 int I;
 begin
-    XPLMALError := 0; \// Clear exception
-    Position := 0; \// start at the beginning of string
+    if Initialized = 0 then begin
+        Initialized := 1;
+        XPLReaderReadStr("{:a {:b {:c 3}}}"); \ Read something?
+    end;
+
+    XPLMALError := 0; \ Clear exception
+    Position := 0; \ start at the beginning of string
     NextPosition := XPLReaderTokenize(Str, addr Position);
-    \// TellPos(Position, NextPosition);
-    TokenPosition := 0; \// Should we do something about this? 
-                        \// is this called recursively at all?
+    \ TellPos(Position, NextPosition);
+    TokenPosition := 0; \ Should we do something about this? 
+                        \ is this called recursively at all?
     if Position = NextPosition then
         return XPLCreateNil;
     loop begin
         I := 0;
         if Position = NextPosition then quit;
-        \// PrintRange(Str, Position, NextPosition - 1);
+        \ PrintRange(Str, Position, NextPosition - 1);
         loop begin
             if Position = NextPosition then quit;
             Tokens(TokenPosition, I) := Str(Position);
@@ -319,7 +436,7 @@ begin
         NextPosition := XPLReaderTokenize(Str, addr Position);
         TokenPosition := TokenPosition + 1;
     end;
-    Tokens(TokenPosition, 0) := 0; \// Reset the next token to be empty
+    Tokens(TokenPosition, 0) := 0; \ Reset the next token to be empty
 
     TokenPosition := 0;
     XPLReaderReadInto := MAlloc(6);

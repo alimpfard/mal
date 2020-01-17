@@ -24,6 +24,7 @@ char Ptr;
 char Ptr1;
 char TmpChar;
 int TmpValue;
+int Negative;
 begin
     Result := [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -31,6 +32,12 @@ begin
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     Ptr := Result;
     Ptr1 := Result;
+    Negative := false;
+    if Value < 0 then
+    begin
+        Negative := true;
+        Value := 0 - Value;
+    end;
 
     loop begin
         TmpValue := Value;
@@ -40,7 +47,7 @@ begin
         if Value <= 0 then quit;
     end;
 
-    if TmpValue < 0 then begin
+    if Negative then begin
         Ptr(0) := ^-;
         Ptr := Ptr + 1;
     end;
@@ -65,9 +72,16 @@ function AToI(Str);
 char Str;
 int Value;
 int I;
+int Negative;
 begin
+    Negative := false;
     Value := 0;
     I := 0;
+
+    if Str(0) = ^- then begin
+        Negative := true;
+        I := 1;
+    end;
 
     loop begin
         if Str(I) = 0 then quit;
@@ -75,7 +89,7 @@ begin
         Value := Value * 10 + (Str(I) - ^0);
         I := I + 1;
     end;
-    return Value;
+    return if Negative then 0 - Value else Value;
 end;
 
 function SPrintF0(Buffer, Str);
@@ -118,10 +132,10 @@ begin
     IntOut(0, RStart);
     Text(0, " To ");
     IntOut(0, REnd);
-    Text(0, ": ''");
+    Text(0, ": '");
     for I := RStart to REnd do
         ChOut(0, Str(I));
-    Text(0, "''");
+    ChOut(0, ^');
     CrLf(0);
 end;
 

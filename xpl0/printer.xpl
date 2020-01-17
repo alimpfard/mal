@@ -1,12 +1,13 @@
-function XPLPrinterSPrStr(Value, Form);
+function XPLPrinterSPrStr(Value, Form, PrintReadably);
 char Value;
 int Form;
+int PrintReadably;
 int Val;
 int ListPrinted;
 begin
-    \// Text(0, "SPrStr Form of kind ");
-    \// IntOut(0, Form(0));
-    \// CrLf(0);
+    \ Text(0, "SPrStr Form of kind ");
+    \ IntOut(0, Form(0));
+    \ CrLf(0);
     case Form(0) of
         NumberKind: begin
             Val := IToA(Form(1)); 
@@ -25,7 +26,7 @@ begin
         NilKind:
             Value := Value + SPrintF0(Value, "nil");
         ListKind: begin
-            Form := Form(1); \// Children
+            Form := Form(1); \ Children
             Value(0) := ^(;
             Value := Value + 1;
             ListPrinted := 0;
@@ -33,7 +34,7 @@ begin
                 if Form = 0 then quit;
                 if Form(0) < 0 or Form(0) > InvalidKind then quit;
                 ListPrinted := 1;
-                Value := XPLPrinterSPrStr(Value, Form);
+                Value := XPLPrinterSPrStr(Value, Form, PrintReadably);
                 Value := Value + SPrintF0(Value, " ");
                 Form := Form(2);
             end;
@@ -43,7 +44,7 @@ begin
             Value(0) := 0;
         end;
         VectorKind: begin
-            Form := Form(1); \// Children
+            Form := Form(1); \ Children
             Value(0) := ^[;
             Value := Value + 1;
             ListPrinted := 0;
@@ -51,11 +52,29 @@ begin
                 if Form = 0 then quit;
                 if Form(0) < 0 or Form(0) > InvalidKind then quit;
                 ListPrinted := 1;
-                Value := XPLPrinterSPrStr(Value, Form);
+                Value := XPLPrinterSPrStr(Value, Form, PrintReadably);
                 Value := Value + SPrintF0(Value, " ");
                 Form := Form(2);
             end;
             Value(0 - ListPrinted) := ^];
+            if ListPrinted = 0 then
+                Value := Value + 1;
+            Value(0) := 0;
+        end;
+        HashKind: begin
+            Form := Form(1); \ Children
+            Value(0) := ^{;
+            Value := Value + 1;
+            ListPrinted := 0;
+            loop begin
+                if Form = 0 then quit;
+                if Form(0) < 0 or Form(0) > InvalidKind then quit;
+                ListPrinted := 1;
+                Value := XPLPrinterSPrStr(Value, Form, PrintReadably);
+                Value := Value + SPrintF0(Value, " ");
+                Form := Form(2);
+            end;
+            Value(0 - ListPrinted) := ^};
             if ListPrinted = 0 then
                 Value := Value + 1;
             Value(0) := 0;
@@ -70,13 +89,13 @@ begin
     return Value;
 end;
 
-function XPLPrinterPrStr(Form);
+function XPLPrinterPrStr(Form, PrintReadably);
 int Form;
+int PrintReadably;
 char VBuffer(512);
 int Str;
 begin
-
     Str := VBuffer;
-    XPLPrinterSPrStr(Str, Form);
+    XPLPrinterSPrStr(Str, Form, PrintReadably);
     return Str;
 end;

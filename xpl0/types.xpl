@@ -7,7 +7,6 @@ define
     FalseKind,
     NilKind,
     HashKind,
-    HashElementKind,
     ListKind,
     VectorKind,
     InvalidKind;
